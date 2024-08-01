@@ -46,6 +46,9 @@ def create_category_permutations(full_category: str) -> List[str]:
 
 def load_and_process_data(file_path: Path) -> List[dict]:
     """Load and process data from a given file path."""
+    if file_path.suffix != ".jsonl":
+        logger.info(f"Expected a .jsonl file, got {file_path.suffix} instead")
+        raise ValueError(f"Expected a .jsonl file, got {file_path.suffix} instead")
     products = []
     try:
         with open(file_path, "r", encoding="utf-8") as file:
