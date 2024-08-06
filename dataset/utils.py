@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 
-import polars as pl
+import pandas as pd
 from loguru import logger
 
 # Log to a file with rotation
@@ -44,7 +44,7 @@ def create_category_permutations(full_category: str) -> List[str]:
     return [" > ".join(parts[: i + 1]) for i in range(len(parts))]
 
 
-def load_and_process_data(file_path: Path) -> List[dict]:
+def load_and_process_data(file_path: Path, lines: int = None) -> List[dict]:
     """Load and process data from a given file path."""
     if file_path.suffix != ".jsonl":
         logger.info(f"Expected a .jsonl file, got {file_path.suffix} instead")
@@ -52,20 +52,22 @@ def load_and_process_data(file_path: Path) -> List[dict]:
     products = []
     try:
         with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
+            for i, line in enumerate(file):
                 try:
                     products.append(json.loads(line.strip()))
                 except Exception as e:
                     logger.warning(f"Exception occurred while loading data: {e}")
 
+                if i == lines - 1:
+                    break
             logger.info(
                 f"Processed file {file_path} successfully, collected: {len(products)} products."
             )
     except Exception as e:
         logger.error(f"Failed to process file {file_path}: {e}")
-        return pl.DataFrame()
+        return pd.DataFrame()
 
-    return pl.DataFrame(data=products)
+    return pd.DataFrame(data=products)
 
 
 def save_data(data: List[dict], output_file_path: Path) -> None:
