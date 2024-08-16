@@ -166,3 +166,4 @@ cython_debug/
 
 # Added
 *.jsonl
+*.DS_Store
