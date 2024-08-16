@@ -1,10 +1,16 @@
+import asyncio
 import gzip
 import json
+import os
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 import pandas as pd
+import yaml
 from loguru import logger
+
+from dataset.api_request_parallel_processor import process_api_requests_from_file
 
 # Log to a file with rotation
 logger.add("data_processing.log", rotation="10 MB")
@@ -108,3 +114,73 @@ def remove_processed_files(input_dir: Path, output_dir: Path) -> List[Path]:
 
     difference = input_file_names.difference(output_file_names)
     return [input_dir / (file + ".jsonl.gz") for file in difference]
+
+
+@dataclass
+class URLConfig:
+    embedding: str
+    chat: str
+
+
+@dataclass
+class LimitsConfig:
+    requests_per_minute: Dict[str, int]
+    tokens_per_minute: Dict[str, int]
+
+
+@dataclass
+class TokenEncodingConfig:
+    gpt_4o: str
+    gpt_4o_mini: str
+    gpt_3_5_turbo: str
+    text_embedding_3_large: str
+    text_embedding_3_small: str
+    text_embedding_ada_002: str
+
+
+@dataclass
+class OpenAIConfig:
+    url: URLConfig
+    max_attempts: int
+    logging_level: int
+    limits: LimitsConfig
+    token_encoding: TokenEncodingConfig
+
+    @staticmethod
+    def load_config_yaml(yaml_file: Path) -> "OpenAIConfig":
+        with open(yaml_file, "r") as file:
+            data = yaml.safe_load(file)
+            return OpenAIConfig(
+                url=URLConfig(**data["openai"]["url"]),
+                max_attempts=data["openai"]["max_attempts"],
+                logging_level=data["openai"]["logging_level"],
+                limits=LimitsConfig(**data["openai"]["limits"]),
+                token_encoding=TokenEncodingConfig(
+                    **data["openai"]["token_encoding_name"]
+                ),
+            )
+
+
+def run_api_request_processor(
+    requests_filepath: Path,
+    save_filepath: Path,
+    request_url: str,
+    max_requests_per_minute: int,
+    max_tokens_per_minute: int,
+    token_encoding_name: str,
+    max_attempts: int,
+    logging_level: int,
+) -> None:
+    asyncio.run(
+        process_api_requests_from_file(
+            requests_filepath=requests_filepath,
+            save_filepath=save_filepath,
+            request_url=request_url,
+            api_key=os.getenv("OPENAI_API_KEY"),
+            max_requests_per_minute=float(max_requests_per_minute),
+            max_tokens_per_minute=float(max_tokens_per_minute),
+            token_encoding_name=token_encoding_name,
+            max_attempts=int(max_attempts),
+            logging_level=int(logging_level),
+        )
+    )
