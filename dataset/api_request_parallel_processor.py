@@ -153,13 +153,13 @@ async def process_api_requests_from_file(
 
     # initialize flags
     file_not_finished = True  # after file is empty, we'll skip reading it
-    logging.debug(f"Initialization complete.")
+    logging.debug("Initialization complete.")
 
     # initialize file reading
     with open(requests_filepath) as file:
         # `requests` will provide requests one at a time
         requests = file.__iter__()
-        logging.debug(f"File opened. Entering main loop")
+        logging.debug("File opened. Entering main loop")
         async with aiohttp.ClientSession() as session:  # Initialize ClientSession here
             while True:
                 # get next request (if one is not already waiting for capacity)
