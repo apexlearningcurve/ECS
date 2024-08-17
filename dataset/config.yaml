@@ -6,23 +6,23 @@ openai:
   logging_level: 20
   limits:
     requests_per_minute: 
-      gpt-4o: 500
-      gpt-4o-mini: 500
-      gpt-3.5-turbo: 3500
-      text-embedding-3-large: 3000
-      text-embedding-3-small: 3000
-      text-embedding-ada-002: 3000
+      gpt_4o: 500
+      gpt_4o_mini: 500
+      gpt_3_5_turbo: 3500
+      text_embedding_3_large: 3000
+      text_embedding_3_small: 3000
+      text_embedding_ada_002: 3000
     tokens_per_minute:
-      gpt-4o: 30000
-      gpt-4o-mini: 200000
-      gpt-3.5-turbo: 200000
-      text-embedding-3-large: 1000000
-      text-embedding-3-small: 1000000
-      text-embedding-ada-002: 1000000
+      gpt_4o: 30000
+      gpt_4o_mini: 200000
+      gpt_3_5_turbo: 200000
+      text_embedding_3_large: 1000000
+      text_embedding_3_small: 1000000
+      text_embedding_ada_002: 1000000
   token_encoding_name:
-    gpt-4o: o200k_base
-    gpt-4o-mini: o200k_base
-    gpt-3.5-turbo: cl100k_base
-    text-embedding-3-large: cl100k_base
-    text-embedding-3-small: cl100k_base
-    text-embedding-ada-002: cl100k_base
+    gpt_4o: o200k_base
+    gpt_4o_mini: o200k_base
+    gpt_3_5_turbo: cl100k_base
+    text_embedding_3_large: cl100k_base
+    text_embedding_3_small: cl100k_base
+    text_embedding_ada_002: cl100k_base
