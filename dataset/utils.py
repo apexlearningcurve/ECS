@@ -10,7 +10,7 @@ import pandas as pd
 import yaml
 from loguru import logger
 
-from dataset.api_request_parallel_processor import process_api_requests_from_file
+from api_request_parallel_processor import process_api_requests_from_file
 
 # Log to a file with rotation
 logger.add("data_processing.log", rotation="10 MB")
