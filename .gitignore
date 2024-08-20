@@ -165,5 +165,6 @@ cython_debug/
 
 # Additional
 *.csv
-*.json
+*.json*
 *.parquet
+*cache
