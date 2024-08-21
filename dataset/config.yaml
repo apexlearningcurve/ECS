@@ -3,7 +3,7 @@ openai:
     embedding: "https://api.openai.com/v1/embeddings"
     chat: "https://api.openai.com/v1/chat/completions"
   max_attempts: 5
-  logging_level: 20
+  logging_level: 40
   limits:
     requests_per_minute: 
       gpt_4o: 500
