@@ -167,3 +167,7 @@ cython_debug/
 # Added
 *.jsonl
 *.DS_Store
+*.csv
+*.parquet
+*cache
+*.json
