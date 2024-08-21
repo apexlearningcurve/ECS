@@ -185,10 +185,10 @@ def run_api_request_processor(
     )
 
 
-def save_jsonl(jobs: List[Dict], file_path: Path) -> None:
+def save_jsonl(entries: List[Dict], file_path: Path) -> None:
     with open(file_path, "w") as f:
-        for job in jobs:
-            json_string = json.dumps(job)
+        for entry in entries:
+            json_string = json.dumps(entry)
             f.write(json_string + "\n")
 
 
@@ -196,7 +196,7 @@ def create_jobs(
     df: pd.DataFrame,
     model: str,
     file_path: Path,
-    product_key: str = "product_text",
+    product_keys: list[str] = ["product_text"],
     id_key: str = "id",
 ) -> None:
 
@@ -205,12 +205,14 @@ def create_jobs(
     jobs = [
         {
             "model": model,
-            "input": getattr(row, product_key),
+            "input": {
+                product_key: getattr(row, product_key) for product_key in product_keys
+            },
             "metadata": {id_key: getattr(row, id_key)},
         }
         for row in df.itertuples()
     ]
-    save_jsonl(jobs=jobs, file_path=file_path)
+    save_jsonl(entries=jobs, file_path=file_path)
 
 
 def load_results(results_path: Path) -> Tuple[pd.DataFrame, List[str]]:
