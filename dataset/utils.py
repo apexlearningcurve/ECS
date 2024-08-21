@@ -4,13 +4,12 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import pandas as pd
 import yaml
-from loguru import logger
-
 from api_request_parallel_processor import process_api_requests_from_file
+from loguru import logger
 
 # Log to a file with rotation
 logger.add("data_processing.log", rotation="10 MB")
@@ -184,3 +183,57 @@ def run_api_request_processor(
             logging_level=int(logging_level),
         )
     )
+
+
+def save_jsonl(jobs: List[Dict], file_path: Path) -> None:
+    with open(file_path, "w") as f:
+        for job in jobs:
+            json_string = json.dumps(job)
+            f.write(json_string + "\n")
+
+
+def create_jobs(
+    df: pd.DataFrame,
+    model: str,
+    file_path: Path,
+    product_key: str = "product_text",
+    id_key: str = "id",
+) -> None:
+
+    assert file_path.suffix == ".jsonl", ValueError("File path must be a JSONL file!")
+
+    jobs = [
+        {
+            "model": model,
+            "input": getattr(row, product_key),
+            "metadata": {id_key: getattr(row, id_key)},
+        }
+        for row in df.itertuples()
+    ]
+    save_jsonl(jobs=jobs, file_path=file_path)
+
+
+def load_results(results_path: Path) -> Tuple[pd.DataFrame, List[str]]:
+    """
+    Load results from a JSONL file and return a DataFrame and a List of faild IDs.
+    """
+    assert results_path.exists(), FileNotFoundError("There is no results file!")
+    assert results_path.suffix == ".jsonl", ValueError(
+        "File path must be a JSONL file!"
+    )
+
+    embeddings = []
+    fail_ids = []
+    with open(results_path, "r", encoding="utf-8") as file:
+        for line in file:
+            try:
+                data = json.loads(line)
+                embedding = data[1]["data"][0]["embedding"]
+                id = data[2]["id"]
+                embeddings.append({"id": id, "embeddings": embedding})
+            except Exception as e:
+                fail_ids.append(id)
+                logger.warning(f"JSON loads failed for ID: {id}, with exception: {e}")
+
+    df = pd.DataFrame(embeddings)
+    return df, fail_ids
