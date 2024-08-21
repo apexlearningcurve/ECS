@@ -256,8 +256,8 @@ def load_results(
             id = None  # Initialize id before the try block
             try:
                 data = json.loads(line)
-                embedding = data[1]["data"][0]["embedding"]
                 id = data[2][id_key]
+                embedding = data[1]["data"][0]["embedding"]
                 embeddings.append({id_key: id, "embeddings": embedding})
             except Exception as e:
                 if id is not None:
