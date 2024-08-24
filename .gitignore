@@ -162,3 +162,14 @@ cython_debug/
 #.idea/
 
 .vscode
+
+
+# Added
+*.jsonl
+*.DS_Store
+*.csv
+*.parquet
+*cache
+*.json
+*.txt
+*.npy

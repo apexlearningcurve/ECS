@@ -12,6 +12,9 @@ loguru = "^0.7.2"
 tqdm = "^4.66.4"
 datasets = "^2.20.0"
 pandas = "^2.2.2"
+openai = "^1.40.8"
+tiktoken = "^0.7.0"
+faiss-cpu = "^1.8.0.post1"
 
 
 [tool.poetry.group.dev.dependencies]

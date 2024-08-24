@@ -1,9 +1,15 @@
+import tiktoken
+import asyncio
 import gzip
 import json
+import os
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
 import pandas as pd
+import yaml
+from api_request_parallel_processor import process_api_requests_from_file
 from loguru import logger
 
 # Log to a file with rotation
@@ -108,3 +114,154 @@ def remove_processed_files(input_dir: Path, output_dir: Path) -> List[Path]:
 
     difference = input_file_names.difference(output_file_names)
     return [input_dir / (file + ".jsonl.gz") for file in difference]
+
+
+@dataclass
+class URLConfig:
+    embedding: str
+    chat: str
+
+
+@dataclass
+class ModelLimit:
+    gpt_4o: int
+    gpt_4o_mini: int
+    gpt_3_5_turbo: int
+    text_embedding_3_large: int
+    text_embedding_3_small: int
+    text_embedding_ada_002: int
+
+
+@dataclass
+class LimitsConfig:
+    requests_per_minute: ModelLimit
+    tokens_per_minute: ModelLimit
+
+
+@dataclass
+class TokenEncodingConfig:
+    gpt_4o: str
+    gpt_4o_mini: str
+    gpt_3_5_turbo: str
+    text_embedding_3_large: str
+    text_embedding_3_small: str
+    text_embedding_ada_002: str
+
+
+@dataclass
+class OpenAIConfig:
+    url: URLConfig
+    max_attempts: int
+    logging_level: int
+    limits: LimitsConfig
+    token_encoding: TokenEncodingConfig
+
+    @staticmethod
+    def load_config_yaml(yaml_file: Path) -> "OpenAIConfig":
+        with open(yaml_file, "r") as file:
+            data = yaml.safe_load(file)
+            return OpenAIConfig(
+                url=URLConfig(**data["openai"]["url"]),
+                max_attempts=data["openai"]["max_attempts"],
+                logging_level=data["openai"]["logging_level"],
+                limits=LimitsConfig(**data["openai"]["limits"]),
+                token_encoding=TokenEncodingConfig(
+                    **data["openai"]["token_encoding_name"]
+                ),
+            )
+
+
+def run_api_request_processor(
+    requests_filepath: Path,
+    save_filepath: Path,
+    request_url: str,
+    max_requests_per_minute: int,
+    max_tokens_per_minute: int,
+    token_encoding_name: str,
+    max_attempts: int,
+    logging_level: int,
+) -> None:
+    asyncio.run(
+        process_api_requests_from_file(
+            requests_filepath=requests_filepath,
+            save_filepath=save_filepath,
+            request_url=request_url,
+            api_key=os.getenv("OPENAI_API_KEY"),
+            max_requests_per_minute=float(max_requests_per_minute),
+            max_tokens_per_minute=float(max_tokens_per_minute),
+            token_encoding_name=token_encoding_name,
+            max_attempts=int(max_attempts),
+            logging_level=int(logging_level),
+        )
+    )
+
+
+def save_jsonl(entries: List[Dict], file_path: Path) -> None:
+    with open(file_path, "w") as f:
+        for entry in entries:
+            json_string = json.dumps(entry)
+            f.write(json_string + "\n")
+
+
+def truncate_input(input: str):
+    EMBEDDING_CTX_LENGTH = 8191
+    EMBEDDING_ENCODING = "cl100k_base"
+    encoding = tiktoken.get_encoding(EMBEDDING_ENCODING)
+    tokens = encoding.encode(input)
+    if len(tokens) > EMBEDDING_CTX_LENGTH:
+        return encoding.decode(
+            tokens[:EMBEDDING_CTX_LENGTH]
+        )  # not sure if i can pass tokens or text only
+    return input
+
+
+def create_embedding_jobs(
+    df: pd.DataFrame,
+    model: str,
+    file_path: Path,
+    product_keys: list[str] = ["product_text"],
+    id_key: str = "id",
+) -> None:
+
+    assert file_path.suffix == ".jsonl", ValueError("File path must be a JSONL file!")
+
+    jobs = [
+        {
+            "model": model,
+            "input": truncate_input(
+                "\n\n".join([getattr(row, product_key) for product_key in product_keys])
+            ),
+            "metadata": {id_key: getattr(row, id_key)},
+        }
+        for row in df.itertuples()
+    ]
+    save_jsonl(entries=jobs, file_path=file_path)
+
+
+def load_results(
+    results_path: Path, id_key: str = "id"
+) -> Tuple[pd.DataFrame, List[str]]:
+    """
+    Load results from a JSONL file and return a DataFrame and a List of faild IDs.
+    """
+    assert results_path.exists(), FileNotFoundError("There is no results file!")
+    assert results_path.suffix == ".jsonl", ValueError(
+        "File path must be a JSONL file!"
+    )
+
+    embeddings = []
+    fail_ids = []
+    with open(results_path, "r", encoding="utf-8") as file:
+        for line in file:
+            id = None  # Initialize id before the try block
+            try:
+                data = json.loads(line)
+                id = data[2][id_key]
+                embedding = data[1]["data"][0]["embedding"]
+                embeddings.append({id_key: id, "embeddings": embedding})
+            except Exception as e:
+                if id is not None:
+                    fail_ids.append(id)
+                logger.warning(f"JSON loads failed for ID: {id}, with exception: {e}")
+    df = pd.DataFrame(embeddings)
+    return df, fail_ids

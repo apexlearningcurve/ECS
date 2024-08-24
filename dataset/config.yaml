@@ -1,0 +1,28 @@
+openai:
+  url:
+    embedding: "https://api.openai.com/v1/embeddings"
+    chat: "https://api.openai.com/v1/chat/completions"
+  max_attempts: 5
+  logging_level: 40
+  limits:
+    requests_per_minute: 
+      gpt_4o: 500
+      gpt_4o_mini: 500
+      gpt_3_5_turbo: 3500
+      text_embedding_3_large: 3000
+      text_embedding_3_small: 3000
+      text_embedding_ada_002: 3000
+    tokens_per_minute:
+      gpt_4o: 30000
+      gpt_4o_mini: 200000
+      gpt_3_5_turbo: 200000
+      text_embedding_3_large: 1000000
+      text_embedding_3_small: 1000000
+      text_embedding_ada_002: 1000000
+  token_encoding_name:
+    gpt_4o: o200k_base
+    gpt_4o_mini: o200k_base
+    gpt_3_5_turbo: cl100k_base
+    text_embedding_3_large: cl100k_base
+    text_embedding_3_small: cl100k_base
+    text_embedding_ada_002: cl100k_base
