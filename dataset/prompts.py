@@ -1,7 +1,12 @@
 QUERY_GENERATION_PROMPT = """
 ### Task: E-commerce Product Query Generation ###
 
-Generate realistic user search queries for a given e-commerce product. These queries will be used to train an embedding model for search, retrieval, and ranking.
+Generate realistic user search queries specifically for an e-commerce platform's search engine. 
+Platforms like Amazon, eBay, Walmart, not general search engines like Google, Bing, etc.
+These queries should reflect how customers typically search for products they intend to purchase on online marketplaces. 
+The goal is to create queries that a user would type when looking to buy or find a specific product, not to ask general questions about it. 
+These queries will be used to train an embedding model for improving product search, retrieval, and ranking within an e-commerce context. 
+Focus on product-centric, purchase-oriented queries that align with shopper behavior on e-commerce websites.
 
 ### Input ###
 Product Text: {product_text}
@@ -52,6 +57,7 @@ Product Text: {product_text}
    - Query or parts of query can not be the same as if extracted from product text
    - Including uncommon abbreviations or technical jargon
    - Generating overly generic queries
+   - Words and phrases like "buy", "where to buy", "price", "where can I find", "for sale", etc.
 
 ### Output Format ###
 Provide the result in JSON format:
