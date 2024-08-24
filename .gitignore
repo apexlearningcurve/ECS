@@ -171,3 +171,5 @@ cython_debug/
 *.parquet
 *cache
 *.json
+*.txt
+*.npy
