@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 from dotenv import find_dotenv, load_dotenv
-from utils import (
+from scripts.utils import (
     OpenAIConfig,
     create_embedding_jobs,
     run_api_request_processor,
