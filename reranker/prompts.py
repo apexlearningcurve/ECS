@@ -21,7 +21,7 @@ product category: Beauty & Personal Care
 """
 Relevant: No
 
-Query: HP Pavilion dm4 replacement battery
+Query: laptop replacement battery
 Product: 
 """
 ATC 11.1V 6-Cell Replacement Laptop Battery for HP Pavilion dm4-1062nr Pavilion dm4-1063cl Pavilion dm4-1063he Pavilion dm4-1065dx Pavilion dm4-1070ee Pavilion dm4-1070ef
