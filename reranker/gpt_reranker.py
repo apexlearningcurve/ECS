@@ -47,6 +47,7 @@ def run_reranker(
     prompt: str,
     model: str = MODEL_NAME,
     labels: list = LABELS,
+    logit_bias_value: float = 1.0,
     logger_level: Literal[
         "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"
     ] = None,
@@ -60,7 +61,7 @@ def run_reranker(
 
     label_ids = [tokenizer.encode(label) for label in labels]
     logger.debug(f"Label IDs: {label_ids}")
-    logit_bias = {id[0]: 1 for id in label_ids if len(id) == 1}
+    logit_bias = {id[0]: logit_bias_value for id in label_ids if len(id) == 1}
     logger.debug(f"Logit bias: {logit_bias}")
 
     responses = product_relevance(
