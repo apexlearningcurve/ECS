@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple
 
 import pandas as pd
 import yaml
-from api_request_parallel_processor import process_api_requests_from_file
+from scripts.api_request_parallel_processor import process_api_requests_from_file
 from loguru import logger
 
 # Log to a file with rotation
